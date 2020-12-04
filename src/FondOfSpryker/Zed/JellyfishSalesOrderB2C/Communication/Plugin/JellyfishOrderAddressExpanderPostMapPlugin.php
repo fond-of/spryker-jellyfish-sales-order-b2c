@@ -1,4 +1,5 @@
 <?php
+
 namespace FondOfSpryker\Zed\JellyfishSalesOrderB2C\Communication\Plugin;
 
 use FondOfSpryker\Zed\JellyfishSalesOrderExtension\Dependency\Plugin\JellyfishOrderAddressExpanderPostMapPluginInterface;
@@ -8,8 +9,8 @@ use Orm\Zed\Sales\Persistence\SpySalesOrderAddress;
 class JellyfishOrderAddressExpanderPostMapPlugin implements JellyfishOrderAddressExpanderPostMapPluginInterface
 {
     /**
-     * @param  \Generated\Shared\Transfer\JellyfishOrderAddressTransfer  $jellyfishOrderAddressTransfer
-     * @param  \Orm\Zed\Sales\Persistence\SpySalesOrderAddress  $salesOrderAddress
+     * @param \Generated\Shared\Transfer\JellyfishOrderAddressTransfer $jellyfishOrderAddressTransfer
+     * @param \Orm\Zed\Sales\Persistence\SpySalesOrderAddress $salesOrderAddress
      *
      * @return \Generated\Shared\Transfer\JellyfishOrderAddressTransfer
      */
@@ -25,5 +26,4 @@ class JellyfishOrderAddressExpanderPostMapPlugin implements JellyfishOrderAddres
 
         return $jellyfishOrderAddressTransfer;
     }
-
 }
