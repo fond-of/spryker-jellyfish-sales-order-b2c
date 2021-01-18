@@ -7,6 +7,7 @@ use FondOfSpryker\Zed\JellyfishSalesOrderExtension\Dependency\Plugin\JellyfishOr
 use Generated\Shared\Transfer\JellyfishOrderDiscountTransfer;
 use Generated\Shared\Transfer\JellyfishOrderTransfer;
 use Orm\Zed\Sales\Persistence\SpySalesDiscount;
+use Orm\Zed\Sales\Persistence\SpySalesDiscountCode;
 use Orm\Zed\Sales\Persistence\SpySalesOrder;
 
 class JellyfishOrderDiscountExpanderPostMapPlugin implements JellyfishOrderExpanderPostMapPluginInterface
@@ -49,16 +50,14 @@ class JellyfishOrderDiscountExpanderPostMapPlugin implements JellyfishOrderExpan
         SpySalesDiscount $salesDiscount,
         JellyfishOrderDiscountTransfer $jellyfishDiscount
     ): JellyfishOrderDiscountTransfer {
-        if (empty($jellyfishDiscount->getName()) || $jellyfishDiscount->getIdSalesOrderItem() === null) {
-            foreach ($salesDiscount->getDiscountCodes() as $salesDiscountCode) {
-                if (
-                    $salesDiscountCode->getCode() === $jellyfishDiscount->getCode()
-                    && $jellyfishDiscount->getSumAmount() === $salesDiscount->getAmount()
-                    && $jellyfishDiscount->getQuantity() === $this->getQuantity($salesDiscount)
-                ) {
-                    $jellyfishDiscount->setName($this->getDiscountName($jellyfishDiscount, $salesDiscount));
-                    $jellyfishDiscount->setIdSalesOrderItem($this->getIdSalesOrder($jellyfishDiscount, $salesDiscount));
-                }
+        if (empty($jellyfishDiscount->getName()) === false && $jellyfishDiscount->getIdSalesOrderItem() !== null) {
+            return $jellyfishDiscount;
+        }
+
+        foreach ($salesDiscount->getDiscountCodes() as $salesDiscountCode) {
+            if ($this->compare($salesDiscountCode, $jellyfishDiscount, $salesDiscount) === true) {
+                $jellyfishDiscount->setName($this->getDiscountName($jellyfishDiscount, $salesDiscount));
+                $jellyfishDiscount->setIdSalesOrderItem($this->getIdSalesOrder($jellyfishDiscount));
             }
         }
 
@@ -88,13 +87,11 @@ class JellyfishOrderDiscountExpanderPostMapPlugin implements JellyfishOrderExpan
 
     /**
      * @param \Generated\Shared\Transfer\JellyfishOrderDiscountTransfer $jellyfishDiscount
-     * @param \Orm\Zed\Sales\Persistence\SpySalesDiscount $salesDiscount
      *
      * @return int
      */
     protected function getIdSalesOrder(
-        JellyfishOrderDiscountTransfer $jellyfishDiscount,
-        SpySalesDiscount $salesDiscount
+        JellyfishOrderDiscountTransfer $jellyfishDiscount
     ): int {
         if ($jellyfishDiscount->getIdSalesOrderItem() !== null) {
             return $jellyfishDiscount->getIdSalesOrderItem();
@@ -113,5 +110,22 @@ class JellyfishOrderDiscountExpanderPostMapPlugin implements JellyfishOrderExpan
         $salesOrderItem = $salesDiscount->getOrderItem();
 
         return $salesOrderItem === null ? 1 : $salesOrderItem->getQuantity();
+    }
+
+    /**
+     * @param \Orm\Zed\Sales\Persistence\SpySalesDiscountCode $salesDiscountCode
+     * @param \Generated\Shared\Transfer\JellyfishOrderDiscountTransfer $jellyfishDiscount
+     * @param \Orm\Zed\Sales\Persistence\SpySalesDiscount $salesDiscount
+     *
+     * @return bool
+     */
+    protected function compare(
+        SpySalesDiscountCode $salesDiscountCode,
+        JellyfishOrderDiscountTransfer $jellyfishDiscount,
+        SpySalesDiscount $salesDiscount
+    ): bool {
+        return $salesDiscountCode->getCode() === $jellyfishDiscount->getCode()
+            && $jellyfishDiscount->getSumAmount() === $salesDiscount->getAmount()
+            && $jellyfishDiscount->getQuantity() === $this->getQuantity($salesDiscount);
     }
 }
