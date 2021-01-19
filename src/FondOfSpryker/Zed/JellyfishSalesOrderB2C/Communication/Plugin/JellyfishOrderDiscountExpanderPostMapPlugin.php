@@ -27,17 +27,20 @@ class JellyfishOrderDiscountExpanderPostMapPlugin implements JellyfishOrderExpan
         JellyfishOrderTransfer $jellyfishOrderTransfer,
         SpySalesOrder $salesOrder
     ): JellyfishOrderTransfer {
-        $jellyfishOrderDiscounts = new ArrayObject();
+        $jellyfishOrderDiscounts = [];
+        foreach ($jellyfishOrderTransfer->getDiscounts() as $discountTransfer) {
+            $jellyfishOrderDiscounts[$this->getIdSalesOrder($discountTransfer)] = $discountTransfer;
+        }
 
         foreach ($salesOrder->getDiscounts() as $salesDiscount) {
-            foreach ($jellyfishOrderTransfer->getDiscounts() as $jellyDiscount) {
+            foreach ($jellyfishOrderDiscounts as $jellyDiscount) {
                 $jellyfishOrderDiscount = $this->validateAndExtendDiscount($salesDiscount, $jellyDiscount);
 
-                $jellyfishOrderDiscounts->append($jellyfishOrderDiscount);
+                $jellyfishOrderDiscounts[$jellyfishOrderDiscount->getIdSalesOrderItem()] = $jellyfishOrderDiscount;
             }
         }
 
-        return $jellyfishOrderTransfer->setDiscounts($jellyfishOrderDiscounts);
+        return $jellyfishOrderTransfer->setDiscounts(new ArrayObject($jellyfishOrderDiscounts));
     }
 
     /**
